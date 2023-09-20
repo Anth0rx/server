@@ -36,11 +36,13 @@ use OCP\AppFramework\QueryException;
 use OCP\Contacts\ContactsMenu\IProvider;
 use OCP\IServerContainer;
 use OCP\IUser;
+use OCP\IConfig;
 use Psr\Log\LoggerInterface;
 
 class ActionProviderStore {
 	public function __construct(
 		private IServerContainer $serverContainer,
+		private IConfig $config,
 		private AppManager $appManager,
 		private LoggerInterface $logger,
 	) {
@@ -78,11 +80,25 @@ class ActionProviderStore {
 	 * @return string[]
 	 */
 	private function getServerProviderClasses(): array {
-		return [
-			ProfileProvider::class,
-			LocalTimeProvider::class,
-			EMailProvider::class,
-		];
+		$showProfile = $this->$config->$getSystemValueBool('contacts_menu_show_profile', true);
+		$showLocalTime = $this->$config->$getSystemValueBool('contacts_menu_show_local_time', true);
+		$showEMail = $this->$config->$getSystemValueBool('contacts_menu_show_email', false);
+
+		$providerClasses = array();
+		
+		if($showProfile) {
+			array_push($providerClasses, ProfileProvider::class);
+		}
+		
+		if($showLocalTime) {
+			array_push($providerClasses, LocalTimeProvider::class);
+		}
+
+		if($showEMail) {
+			array_push($providerClasses, EMailProvider::class);
+		}
+		
+		return $providerClasses;
 	}
 
 	/**
